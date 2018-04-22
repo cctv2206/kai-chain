@@ -3,7 +3,8 @@ const P2P_PORT = process.env.P2P_PORT || 5001;
 const peers = process.env.PEERS ? process.env.PEERS.split(',') : [];
 const MESSAGE_TYPES = {
   chain: 'CHAIN',
-  tx: 'TX'
+  tx: 'TX',
+  clear_txs: 'CLEAR_TXS'
 };
 
 class P2pServer {
@@ -13,6 +14,7 @@ class P2pServer {
     this.txPool = txPool;
 
     this.sendChain = this.sendChain.bind(this);
+    this.clearTx = this.clearTx.bind(this);
   }
 
   listen() {
@@ -53,6 +55,9 @@ class P2pServer {
         case MESSAGE_TYPES.tx:
           this.txPool.updateOrAddTransaction(data.tx);
           break;
+        case MESSAGE_TYPES.clear_txs:
+          this.txPool.clear();
+          break;
         default:
           console.log('unidentified message type');
       }
@@ -77,12 +82,22 @@ class P2pServer {
     );
   }
 
+  clearTx(socket) {
+    socket.send(JSON.stringify({
+      type: MESSAGE_TYPES.clear_txs
+    }));
+  }
+
   syncChains() {
     this.sockets.forEach(this.sendChain);
   }
 
   broadcastTx(tx) {
     this.sockets.forEach(socket => this.sendTx(socket, tx));
+  }
+
+  broadcastClearTx() {
+    this.sockets.forEach(this.clearTx);
   }
 }
 

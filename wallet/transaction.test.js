@@ -1,5 +1,6 @@
 const Transaction = require('./transaction');
 const Wallet = require('./index');
+const { MINING_REWARD } = require('../config');
 
 describe('Transaction test', () => {
   let wallet, transaction, recipient, amount;
@@ -80,6 +81,23 @@ describe('Transaction test', () => {
       expect(
         transaction.outputs.find(output => output.address === 'no-one')
       ).toEqual(undefined);
+    });
+  });
+
+  describe('creating a reward transaction', () => {
+    let coinbase;
+    beforeEach(() => {
+      coinbase = Transaction.rewardTransaction(
+        wallet,
+        Wallet.blockchainWallet()
+      );
+    });
+
+    it(`rewards the miner's wallet`, () => {
+      expect(
+        coinbase.outputs.find(output => output.address === wallet.publicKey)
+          .amount
+      ).toEqual(MINING_REWARD);
     });
   });
 });

@@ -4,8 +4,11 @@ const MINE_RATE = 3000; // ms
 
 const INITIAL_BALANCE = 500;
 
+const MINING_REWARD = 50;
+
 module.exports = {
   DIFFICULTY,
   MINE_RATE,
-  INITIAL_BALANCE
+  INITIAL_BALANCE,
+  MINING_REWARD
 };
