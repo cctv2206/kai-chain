@@ -20,7 +20,9 @@ class Wallet {
   }
 
   // todo: should we only have one transactionPool?
-  createTransaction(recipient, amount, transactionPool) {
+  createTransaction(recipient, amount, blockchain, transactionPool) {
+    this.balance = this.calculateBalance(blockchain);
+
     if (amount > this.balance) {
       console.log(`Amount: ${amount} exceeds current balance: ${this.balance}`);
       return;
@@ -35,6 +37,44 @@ class Wallet {
     transactionPool.updateOrAddTransaction(transaction);
 
     return transaction;
+  }
+
+  calculateBalance(blockchain) {
+    let balance = this.balance;
+    let transactions = [];
+    blockchain.chain.forEach(block => {
+      block.data.forEach(tx => {
+        transactions.push(tx);
+      });
+    });
+
+    const walletInputTxs = transactions.filter(
+      tx => tx.input.address === this.publicKey
+    );
+
+    let startTime = 0;
+
+    if (walletInputTxs.length > 0) {
+      const mostRecentTx = walletInputTxs.reduce((prev, current) => {
+        return prev.input.timestamp > current.input.timestamp ? prev : current;
+      });
+      startTime = mostRecentTx.input.timestamp;
+      balance = mostRecentTx.outputs.find(
+        output => output.address === this.publicKey
+      ).amount;
+    }
+
+    transactions.forEach(tx => {
+      if (tx.input.timestamp > startTime) {
+        balance += tx.outputs
+          .filter(output => output.address === this.publicKey)
+          .reduce((total, output) => {
+            return total + output.amount;
+          }, 0);
+      }
+    });
+
+    return balance;
   }
 
   static blockchainWallet() {

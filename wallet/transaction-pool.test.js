@@ -1,16 +1,18 @@
 const TransactionPool = require('./transaction-pool');
 const Transaction = require('./transaction');
 const Wallet = require('./index');
+const BlockChain = require('../blockchain/blockchain');
 
 describe('Transaction Pool test', () => {
-  let wallet, transactionPool, recipient, amount, transaction;
+  let wallet, transactionPool, recipient, amount, transaction, bc;
 
   beforeEach(() => {
     wallet = new Wallet();
     tp = new TransactionPool();
+    bc = new BlockChain();
     recipient = 'some-fake-address';
     amount = 50;
-    transaction = wallet.createTransaction(recipient, amount, tp);
+    transaction = wallet.createTransaction(recipient, amount, bc, tp);
   });
 
   it('adds a new transaction to the pool', () => {
@@ -37,7 +39,7 @@ describe('Transaction Pool test', () => {
       validTxs = [...tp.transactions];
       for (let i = 0; i < 6; i++) {
         wallet = new Wallet();
-        transaction = wallet.createTransaction(recipient, 30, tp);
+        transaction = wallet.createTransaction(recipient, 30, bc, tp);
         if (i % 2 === 0) {
           transaction.input.amount = 9999;
         }
